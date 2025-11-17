@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="theme-color" content="#2ea043" />
+	<meta name="description" content="Aplikacja do zarządzania budżetem osobistym - działa offline" />
+	<title>Mój Budżet</title>
+	<link rel="manifest" href="manifest.json" />
+	<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+	<!-- Modal listy użytkowników -->
+	<div id="users-modal" class="modal hidden">
+		<div class="modal-content" style="max-width: 500px;">
+			<div class="modal-header">
+				<h3>👥 Lista użytkowników</h3>
+				<button class="modal-close" onclick="closeUsersModal()" style="background: transparent; border: none; color: var(--muted); font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">×</button>
+			</div>
+			<div id="users-list-content" style="max-height: 400px; overflow-y: auto;">
+				<div class="muted" style="text-align: center; padding: 20px;">Ładowanie...</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal logowania -->
+	<div id="login-modal" class="modal hidden">
+		<div class="modal-content" style="max-width: 400px;">
+			<div class="modal-header">
+				<h3 id="login-title">Logowanie</h3>
+			</div>
+			<form id="login-form">
+				<div id="login-tabs" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--outline);">
+					<button type="button" class="tab-btn active" data-tab="login">Logowanie</button>
+					<button type="button" class="tab-btn" data-tab="register">Rejestracja</button>
+				</div>
+				
+				<div id="login-content">
+					<label>
+						<span>Nazwa użytkownika</span>
+						<input type="text" id="login-username" required autofocus />
+					</label>
+					<label>
+						<span>Hasło</span>
+						<input type="password" id="login-password" required />
+					</label>
+					<div id="register-fields" style="display: none;">
+						<label>
+							<span>Potwierdź hasło</span>
+							<input type="password" id="register-password-confirm" />
+						</label>
+					</div>
+					<div id="login-error" class="error-message" style="display: none;"></div>
+					<div class="modal-actions">
+						<button type="submit" class="primary" id="login-submit-btn">Zaloguj</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<header class="container">
+		<div style="display: flex; justify-content: space-between; align-items: center;">
+			<div>
+				<h1>Mój Budżet</h1>
+				<p class="muted">Aplikacja offline • Dane zapisywane lokalnie</p>
+			</div>
+			<div style="display: flex; gap: 10px; align-items: center;">
+				<span id="current-user" class="muted" style="display: none;"></span>
+				<button id="theme-toggle" class="outline btn-sm" onclick="toggleTheme()" title="Przełącz tryb jasny/ciemny">
+					🌙
+				</button>
+				<button id="users-list-btn" class="outline btn-sm" onclick="openUsersModal()" title="Lista użytkowników">
+					👥 Użytkownicy
+				</button>
+				<button id="logout-btn" class="outline btn-sm" style="display: none;">Wyloguj</button>
+				<button id="install-btn" class="primary" style="display: none;">
+					📱 Zainstaluj aplikację
+				</button>
+			</div>
+		</div>
+	</header>
+
+	<main class="container" id="main-content" style="display: none;">
+		<section class="card">
+			<h2>Dodaj transakcję</h2>
+			<form id="transaction-form">
+				<input type="hidden" id="editing-id" />
+				<div class="grid">
+					<label>
+						<span>Kwota (PLN)</span>
+						<input type="number" id="amount" step="0.01" min="0" required />
+					</label>
+					<label>
+						<span>Typ</span>
+						<select id="type">
+							<option value="expense">Wydatek</option>
+							<option value="income">Przychód</option>
+						</select>
+					</label>
+					<label>
+						<span>Kategoria</span>
+						<select id="category" required></select>
+					</label>
+					<label>
+						<span>Data</span>
+						<input type="date" id="date" required />
+					</label>
+				</div>
+				<label class="full">
+					<span>Opis (opcjonalnie)</span>
+					<input type="text" id="note" placeholder="np. zakupy w markecie" />
+				</label>
+				<div class="actions">
+					<button type="submit" id="submit-btn" class="primary">Dodaj</button>
+					<button type="button" id="reset-data" class="danger outline">Wyczyść wszystkie dane</button>
+				</div>
+			</form>
+		</section>
+
+		<section class="card">
+			<h2>Podsumowanie</h2>
+			<div class="grid-3">
+				<div class="kpi">
+					<div class="label">Przychody (miesiąc)</div>
+					<div class="value" id="kpi-income">0,00 PLN</div>
+				</div>
+				<div class="kpi">
+					<div class="label">Wydatki (miesiąc)</div>
+					<div class="value" id="kpi-expense">0,00 PLN</div>
+				</div>
+				<div class="kpi">
+					<div class="label">Saldo (miesiąc)</div>
+					<div class="value" id="kpi-balance">0,00 PLN</div>
+				</div>
+			</div>
+
+			<div class="filters">
+				<label>
+					<span>Miesiąc</span>
+					<input type="month" id="filter-month" />
+				</label>
+				<label>
+					<span>Typ</span>
+					<select id="filter-type">
+						<option value="">Wszystkie</option>
+						<option value="income">Przychody</option>
+						<option value="expense">Wydatki</option>
+					</select>
+				</label>
+				<label>
+					<span>Kategoria</span>
+					<select id="filter-category">
+						<option value="">Wszystkie</option>
+					</select>
+				</label>
+				<div class="filters-actions">
+					<button id="export-csv" class="outline">Eksport CSV</button>
+				</div>
+			</div>
+
+			<div class="kpi-horizontal">
+				<div class="kpi-item">
+					<div class="label">Wskazówka (dzienny limit)</div>
+					<div class="value" id="advice-daily">—</div>
+				</div>
+				<div class="kpi-item">
+					<div class="label">Cel oszczędności</div>
+					<div class="value" id="advice-savings">—</div>
+				</div>
+			</div>
+
+			<div class="charts-vertical">
+				<div class="chart-row-full">
+					<div class="chart-with-legend">
+						<div id="legend-main" class="chart-legend"></div>
+						<canvas id="chart-pie" height="160"></canvas>
+					</div>
+				</div>
+				
+				<div class="chart-row">
+					<div class="chart-with-legend">
+						<div id="legend-fixed" class="chart-legend"></div>
+						<canvas id="chart-pie-fixed" height="160"></canvas>
+					</div>
+					<div class="chart-with-legend">
+						<div id="legend-goals" class="chart-legend"></div>
+						<canvas id="chart-pie-goals" height="160"></canvas>
+					</div>
+				</div>
+				
+				<div class="chart-row-single">
+					<canvas id="chart-bar" height="200"></canvas>
+				</div>
+			</div>
+		</section>
+
+		<section class="card">
+			<h2>Cele oszczędnościowe</h2>
+			<form id="multi-goal-form" class="multi-goal-form">
+				<div class="grid" style="grid-template-columns: 2fr 1fr 1fr 2fr;">
+					<label>
+						<span>Nazwa celu</span>
+						<input type="text" id="goal-name" placeholder="np. Wakacje 2026" required />
+					</label>
+					<label>
+						<span>Kwota (PLN)</span>
+						<input type="number" id="goal-target" step="0.01" min="0.01" required />
+					</label>
+					<label>
+						<span>Czas (m-ce)</span>
+						<input type="number" id="goal-months" min="1" value="12" required />
+					</label>
+					<label>
+						<span>Kategoria oszczędności</span>
+						<input type="text" id="goal-category" placeholder="np. Oszczędności na wakacje" required />
+					</label>
+				</div>
+				<div class="savings-actions">
+					<button type="submit" class="primary btn-sm" id="goal-submit-btn">Dodaj cel</button>
+					<button type="button" id="goal-cancel" class="outline btn-sm hidden">Anuluj edycję</button>
+				</div>
+			</form>
+			<div id="goals-list" class="goals-list"></div>
+		</section>
+
+		<section class="card">
+			<h2>Ustawienia: koszty stałe</h2>
+			<form id="fixed-form" class="fixed-form">
+				<div class="grid">
+					<label>
+						<span>Nazwa</span>
+						<input type="text" id="fixed-name" placeholder="np. Rata kredytu" required />
+					</label>
+					<label>
+						<span>Kwota (PLN)</span>
+						<input type="number" id="fixed-amount" step="0.01" min="0" required />
+					</label>
+					<label>
+						<span>Kategoria</span>
+						<select id="fixed-category" required></select>
+					</label>
+					<label>
+						<span>Dzień miesiąca</span>
+						<input type="number" id="fixed-day" min="1" max="31" value="1" required />
+					</label>
+				</div>
+				<div class="actions">
+					<button type="submit" class="primary">Dodaj koszt stały</button>
+					<button type="button" id="fixed-cancel" class="outline hidden">Anuluj edycję</button>
+				</div>
+			</form>
+			<ul id="fixed-list" class="fixed-list"></ul>
+			<p class="muted" style="margin-top:8px">Koszty stałe są automatycznie doliczane do wydatków w wybranym miesiącu.</p>
+		</section>
+
+		<!-- Okno szybkiej wpłaty -->
+		<div id="payment-modal" class="modal hidden">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 id="payment-modal-title">Wpłata na cel</h3>
+					<button id="payment-modal-close" class="icon-btn">✕</button>
+				</div>
+				<form id="payment-form">
+					<input type="hidden" id="payment-goal-id" />
+					<input type="hidden" id="payment-category" />
+					<label>
+						<span>Kwota wpłaty (PLN)</span>
+						<input type="number" id="payment-amount" step="0.01" min="0.01" required autofocus />
+					</label>
+					<label>
+						<span>Data wpłaty</span>
+						<input type="date" id="payment-date" required />
+					</label>
+					<label>
+						<span>Notatka (opcjonalnie)</span>
+						<input type="text" id="payment-note" placeholder="np. Premia" />
+					</label>
+					<div class="modal-actions">
+						<button type="submit" class="primary">Dodaj wpłatę</button>
+						<button type="button" id="payment-cancel" class="outline">Anuluj</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<section class="card">
+			<h2>Transakcje</h2>
+			<div id="empty-state" class="muted">Brak transakcji w wybranym okresie.</div>
+			<table id="transactions-table" class="hidden">
+				<thead>
+					<tr>
+						<th>Data</th>
+						<th>Typ</th>
+						<th>Kategoria</th>
+						<th>Opis</th>
+						<th class="right">Kwota (PLN)</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody id="transactions-body"></tbody>
+			</table>
+			<div id="transaction-inline-editor" class="inline-editor hidden">
+				<form id="inline-editor-form">
+					<input type="hidden" id="ie-id" />
+					<div class="ie-grid">
+						<label>
+							<span>Kwota</span>
+							<input type="number" id="ie-amount" step="0.01" min="0" required />
+						</label>
+						<label>
+							<span>Typ</span>
+							<select id="ie-type">
+								<option value="income">Przychód</option>
+								<option value="expense">Wydatek</option>
+							</select>
+						</label>
+						<label>
+							<span>Kategoria</span>
+							<select id="ie-category" required></select>
+						</label>
+						<label>
+							<span>Data</span>
+							<input type="date" id="ie-date" required />
+						</label>
+					</div>
+					<label class="full">
+						<span>Opis</span>
+						<input type="text" id="ie-note" />
+					</label>
+					<div class="ie-actions">
+						<button type="submit" class="primary btn-sm">Zapisz</button>
+						<button type="button" id="ie-cancel" class="outline btn-sm">Anuluj</button>
+					</div>
+				</form>
+			</div>
+		</section>
+	</main>
+
+	<footer class="container muted">
+		<p>Waluta: PLN • Dane lokalne • Brak logowania</p>
+	</footer>
+
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="app.js"></script>
+</body>
+</html>
