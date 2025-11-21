@@ -478,7 +478,7 @@ function renderTable() {
 				<td><span class="badge">${t.type === "income" ? "Przychód" : "Wydatek"}</span></td>
 				<td>${t.category}</td>
 				<td>${note}</td>
-				<td class="right ${rowClass}">${sign} ${formatPLN(t.amount)}</td>
+				<td class="right ${rowClass}" style="white-space: nowrap; font-weight: 600;">${sign}${formatPLN(t.amount)}</td>
 				<td class="right">
 					${actions}
 				</td>
@@ -701,6 +701,15 @@ function renderCharts() {
 				? "Wydatki" 
 				: "Wszystkie transakcje";
 		const isMobile = window.innerWidth <= 768;
+		const pieCanvas = document.getElementById("chart-pie");
+		if (pieCanvas && isMobile) {
+			pieCanvas.style.width = "85vw";
+			pieCanvas.style.height = "85vw";
+			pieCanvas.style.maxWidth = "85vw";
+			pieCanvas.style.maxHeight = "85vw";
+			pieCanvas.style.margin = "0 auto";
+			pieCanvas.style.display = "block";
+		}
 		chartPie = new Chart(pieCtx, {
 			type: "pie",
 			data: {
@@ -713,14 +722,25 @@ function renderCharts() {
 			},
 			options: { 
 				responsive: true,
-				maintainAspectRatio: !isMobile,
-				aspectRatio: isMobile ? 1.2 : 1,
+				maintainAspectRatio: false,
+				aspectRatio: 1,
 				plugins: { 
 					legend: { display: false },
 					title: { display: true, text: pieTitle, color: "#e6edf3" }
-				} 
+				},
+				layout: {
+					padding: 0
+				}
 			}
 		});
+		if (pieCanvas && isMobile) {
+			pieCanvas.style.width = "85vw";
+			pieCanvas.style.height = "85vw";
+			pieCanvas.style.maxWidth = "85vw";
+			pieCanvas.style.maxHeight = "85vw";
+			pieCanvas.style.margin = "0 auto";
+			pieCanvas.style.display = "block";
+		}
 	}
 
 	// Pie - koszty stałe (po nazwie pozycji)
@@ -749,6 +769,15 @@ function renderCharts() {
 	const pieFixedCtx = document.getElementById("chart-pie-fixed")?.getContext("2d");
 	if (pieFixedCtx) {
 		const isMobileFixed = window.innerWidth <= 768;
+		const pieFixedCanvas = document.getElementById("chart-pie-fixed");
+		if (pieFixedCanvas && isMobileFixed) {
+			pieFixedCanvas.style.width = "85vw";
+			pieFixedCanvas.style.height = "85vw";
+			pieFixedCanvas.style.maxWidth = "85vw";
+			pieFixedCanvas.style.maxHeight = "85vw";
+			pieFixedCanvas.style.margin = "0 auto";
+			pieFixedCanvas.style.display = "block";
+		}
 		chartPieFixed = new Chart(pieFixedCtx, {
 			type: "pie",
 			data: {
@@ -761,14 +790,25 @@ function renderCharts() {
 			},
 			options: { 
 				responsive: true,
-				maintainAspectRatio: !isMobileFixed,
-				aspectRatio: isMobileFixed ? 1.2 : 1,
+				maintainAspectRatio: false,
+				aspectRatio: 1,
 				plugins: { 
 					legend: { display: false },
 					title: { display: true, text: "Koszty stałe", color: "#e6edf3" }
-				} 
+				},
+				layout: {
+					padding: 0
+				}
 			}
 		});
+		if (pieFixedCanvas && isMobileFixed) {
+			pieFixedCanvas.style.width = "85vw";
+			pieFixedCanvas.style.height = "85vw";
+			pieFixedCanvas.style.maxWidth = "85vw";
+			pieFixedCanvas.style.maxHeight = "85vw";
+			pieFixedCanvas.style.margin = "0 auto";
+			pieFixedCanvas.style.display = "block";
+		}
 	}
 
 	// Pie - cele oszczędnościowe (po nazwach celów) - wszystkie transakcje, nie tylko z wybranego miesiąca
@@ -807,6 +847,15 @@ function renderCharts() {
 	const pieGoalsCtx = document.getElementById("chart-pie-goals")?.getContext("2d");
 	if (pieGoalsCtx) {
 		const isMobileGoals = window.innerWidth <= 768;
+		const pieGoalsCanvas = document.getElementById("chart-pie-goals");
+		if (pieGoalsCanvas && isMobileGoals) {
+			pieGoalsCanvas.style.width = "85vw";
+			pieGoalsCanvas.style.height = "85vw";
+			pieGoalsCanvas.style.maxWidth = "85vw";
+			pieGoalsCanvas.style.maxHeight = "85vw";
+			pieGoalsCanvas.style.margin = "0 auto";
+			pieGoalsCanvas.style.display = "block";
+		}
 		chartPieGoals = new Chart(pieGoalsCtx, {
 			type: "pie",
 			data: {
@@ -819,14 +868,25 @@ function renderCharts() {
 			},
 			options: { 
 				responsive: true,
-				maintainAspectRatio: !isMobileGoals,
-				aspectRatio: isMobileGoals ? 1.2 : 1,
+				maintainAspectRatio: false,
+				aspectRatio: 1,
 				plugins: { 
 					legend: { display: false },
 					title: { display: true, text: "Cele oszczędnościowe", color: "#e6edf3" }
-				} 
+				},
+				layout: {
+					padding: 0
+				}
 			}
 		});
+		if (pieGoalsCanvas && isMobileGoals) {
+			pieGoalsCanvas.style.width = "85vw";
+			pieGoalsCanvas.style.height = "85vw";
+			pieGoalsCanvas.style.maxWidth = "85vw";
+			pieGoalsCanvas.style.maxHeight = "85vw";
+			pieGoalsCanvas.style.margin = "0 auto";
+			pieGoalsCanvas.style.display = "block";
+		}
 	}
 
 	// Bar
