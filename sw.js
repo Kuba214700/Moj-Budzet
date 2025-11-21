@@ -1,5 +1,5 @@
 // Service Worker dla aplikacji budżetowej - cache offline
-const CACHE_NAME = 'budzet-v2'; // Zwiększ wersję przy każdej aktualizacji
+const CACHE_NAME = 'budzet-v4'; // Zwiększ wersję przy każdej aktualizacji
 const urlsToCache = [
   './',
   './index.html',
