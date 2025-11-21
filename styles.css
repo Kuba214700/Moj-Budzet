@@ -749,28 +749,60 @@ td.right, th.right { text-align: right; }
 		gap: 12px;
 		width: 100%;
 		box-sizing: border-box;
+		padding: 0;
+		margin: 0;
 	}
 	
 	.chart-row {
 		grid-template-columns: 1fr !important;
 		width: 100%;
 		box-sizing: border-box;
+		padding: 0;
+		margin: 0;
 	}
 	
 	.chart-row-full {
 		width: 100%;
 		box-sizing: border-box;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		justify-content: flex-start;
 	}
 	
 	.chart-row-single {
 		padding: 12px;
 		width: 100%;
 		box-sizing: border-box;
+		margin: 0;
 	}
 	
 	.chart-with-legend {
 		width: 100%;
 		box-sizing: border-box;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+		padding-left: 0;
+		margin-left: 0;
+	}
+	
+	.chart-legend {
+		width: 100%;
+		max-width: 100%;
+		min-width: auto;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-bottom: 8px;
+	}
+	
+	.chart-with-legend canvas {
+		width: 100% !important;
+		max-width: 100%;
+		height: auto !important;
+		margin: 0;
+		padding: 0;
 	}
 	
 	/* Tabela - przewijalna */
