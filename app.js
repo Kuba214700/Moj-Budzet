@@ -131,13 +131,21 @@ function registerUser(username, password) {
 
 function loginUser(username, password) {
 	const users = getUsers();
+	
+	if (!username || !password) {
+		return { success: false, error: "Wypełnij wszystkie pola" };
+	}
+	
 	const user = users[username];
 	if (!user) {
 		return { success: false, error: "Nieprawidłowa nazwa użytkownika lub hasło" };
 	}
-	if (user.passwordHash !== hashPassword(password)) {
+	
+	const providedHash = hashPassword(password);
+	if (user.passwordHash !== providedHash) {
 		return { success: false, error: "Nieprawidłowa nazwa użytkownika lub hasło" };
 	}
+	
 	currentUsername = username;
 	localStorage.setItem(STORAGE_KEYS.currentUser, username);
 	return { success: true };
@@ -692,6 +700,7 @@ function renderCharts() {
 			: typeFilter === "expense" 
 				? "Wydatki" 
 				: "Wszystkie transakcje";
+		const isMobile = window.innerWidth <= 768;
 		chartPie = new Chart(pieCtx, {
 			type: "pie",
 			data: {
@@ -703,6 +712,9 @@ function renderCharts() {
 				}]
 			},
 			options: { 
+				responsive: true,
+				maintainAspectRatio: !isMobile,
+				aspectRatio: isMobile ? 1.2 : 1,
 				plugins: { 
 					legend: { display: false },
 					title: { display: true, text: pieTitle, color: "#e6edf3" }
@@ -736,6 +748,7 @@ function renderCharts() {
 	if (chartPieFixed) chartPieFixed.destroy();
 	const pieFixedCtx = document.getElementById("chart-pie-fixed")?.getContext("2d");
 	if (pieFixedCtx) {
+		const isMobileFixed = window.innerWidth <= 768;
 		chartPieFixed = new Chart(pieFixedCtx, {
 			type: "pie",
 			data: {
@@ -747,6 +760,9 @@ function renderCharts() {
 				}]
 			},
 			options: { 
+				responsive: true,
+				maintainAspectRatio: !isMobileFixed,
+				aspectRatio: isMobileFixed ? 1.2 : 1,
 				plugins: { 
 					legend: { display: false },
 					title: { display: true, text: "Koszty stałe", color: "#e6edf3" }
@@ -790,6 +806,7 @@ function renderCharts() {
 	if (chartPieGoals) chartPieGoals.destroy();
 	const pieGoalsCtx = document.getElementById("chart-pie-goals")?.getContext("2d");
 	if (pieGoalsCtx) {
+		const isMobileGoals = window.innerWidth <= 768;
 		chartPieGoals = new Chart(pieGoalsCtx, {
 			type: "pie",
 			data: {
@@ -801,6 +818,9 @@ function renderCharts() {
 				}]
 			},
 			options: { 
+				responsive: true,
+				maintainAspectRatio: !isMobileGoals,
+				aspectRatio: isMobileGoals ? 1.2 : 1,
 				plugins: { 
 					legend: { display: false },
 					title: { display: true, text: "Cele oszczędnościowe", color: "#e6edf3" }
@@ -1319,7 +1339,10 @@ function initLogin() {
 	const loginTitle = document.getElementById("login-title");
 	const loginSubmitBtn = document.getElementById("login-submit-btn");
 	const loginError = document.getElementById("login-error");
-	let isRegisterMode = false;
+	
+	// Inicjalizacja trybu na podstawie aktywnego taba
+	const activeTab = document.querySelector(".tab-btn.active");
+	let isRegisterMode = activeTab ? activeTab.getAttribute("data-tab") === "register" : false;
 	
 	// Przełączanie tabów
 	loginTabs.forEach(tab => {
@@ -1341,13 +1364,26 @@ function initLogin() {
 	if (loginForm) {
 		loginForm.addEventListener("submit", (e) => {
 			e.preventDefault();
+			
+			// Sprawdź aktualny aktywny tab przed submitem
+			const currentActiveTab = document.querySelector(".tab-btn.active");
+			const currentMode = currentActiveTab ? currentActiveTab.getAttribute("data-tab") === "register" : false;
+			
 			const username = document.getElementById("login-username").value.trim();
 			const password = document.getElementById("login-password").value;
-			const passwordConfirm = document.getElementById("register-password-confirm").value;
+			const passwordConfirm = document.getElementById("register-password-confirm")?.value || "";
+			
+			if (!username || !password) {
+				if (loginError) {
+					loginError.textContent = "Wypełnij wszystkie pola";
+					loginError.style.display = "block";
+				}
+				return;
+			}
 			
 			if (loginError) loginError.style.display = "none";
 			
-			if (isRegisterMode) {
+			if (currentMode) {
 				if (password !== passwordConfirm) {
 					if (loginError) {
 						loginError.textContent = "Hasła nie są identyczne";
